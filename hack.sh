@@ -9,13 +9,16 @@ COLOR_YELLOW='\033[1;33m';
 COLOR_DEFAULT='\033[0m';
 
 # Username for the survivor
-USER_NAME="tmanoilov";
+USER_NAME="admin";
 
 # Check if WP-CLI is installed.
 if ! command -v 'wp' &> /dev/null; then
     echo "WP-CLI could not be found. Please install it and retry."
     exit
 fi
+
+echo "${COLOR_YELLOW}Current users list:${COLOR_DEFAULT}";
+wp user list --skip-themes --skip-plugins;
 
 echo "${COLOR_YELLOW}Creating an admin user...${COLOR_DEFAULT}";
 
@@ -75,5 +78,17 @@ fi
 echo "${COLOR_YELLOW}Deleting users and reassigning content to '$USER_NAME'...${COLOR_DEFAULT}";
 wp user delete $(wp user list --field=ID --exclude=$ADMIN_USER_ID --skip-themes --skip-plugins) --reassign=$ADMIN_USER_ID --skip-themes --skip-plugins &> /dev/null;
 
-echo "${COLOR_GREEN}All done! Here's the current list of users:${COLOR_DEFAULT}";
+echo "${COLOR_GREEN}Done! Here's the current list of users:${COLOR_DEFAULT}";
 wp user list --skip-themes --skip-plugins;
+echo "${COLOR_YELLOW}User '$USER_NAME' password is set to '$USER_PASSWD'.${COLOR_DEFAULT}";
+
+echo "${COLOR_YELLOW}Changing the site URL to local...${COLOR_DEFAULT}";
+
+DOMAIN=`wp option get home --skip-themes --skip-plugins | cut -d'/' -f3 | awk -F'.' -v WWW="www" '{if ( $1==WWW ) {print $2"."$3} else {print $1"."$2}}'`
+
+LOCAL_DOMAIN="http://local.$DOMAIN/"
+
+wp option set home $LOCAL_DOMAIN --skip-themes --skip-plugins &> /dev/null
+wp option set siteurl $LOCAL_DOMAIN --skip-themes --skip-plugins &> /dev/null
+
+echo "${COLOR_GREEN}Done! The site URL is changed to ${COLOR_CYAN}$LOCAL_DOMAIN${COLOR_DEFAULT}";
