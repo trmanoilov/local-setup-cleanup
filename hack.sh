@@ -54,7 +54,7 @@ if [ ! -z "$EXISTING_USER_ID" ]; then
           ;;
         [2]* )
           DEL_USER=2;
-          DUMMY_USER="$(openssl rand -hex 32 | md5 | head -c 10;)";
+          DUMMY_USER="$(openssl rand -hex 32 | md5sum | head -c 10;)";
           # Ugly parsing but wasted too much time on that one...
           DUMMY_USER_ID=`wp user create $DUMMY_USER "$DUMMY_USER@local.host" --user_pass=dummy --skip-themes --skip-plugins | awk -F. '{print $1}' | awk '{print $4}'`;
 
