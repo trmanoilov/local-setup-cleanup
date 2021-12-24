@@ -62,7 +62,7 @@ if [ ! -z "$EXISTING_USER_ID" ]; then
           wp user delete $(wp user list --field=ID --exclude=$DUMMY_USER_ID --skip-themes --skip-plugins) --reassign=$DUMMY_USER_ID --skip-themes --skip-plugins &> /dev/null;
 
           echo "${COLOR_GREEN}Content moved to dummy user and creating new '$USER_NAME'...${COLOR_DEFAULT}";
-          ADMIN_USER_ID=`wp user create $USER_NAME "$USER_NAME@local.host" --user_pass=$USER_PASSWD --skip-themes --skip-plugins | awk -F. '{print $1}' | awk '{print $4}'`;
+          ADMIN_USER_ID=`wp user create $USER_NAME "$USER_NAME@local.host" --role=administrator --user_pass=$USER_PASSWD --skip-themes --skip-plugins | awk -F. '{print $1}' | awk '{print $4}'`;
 
           echo "${COLOR_GREEN}A new '$USER_NAME' user was created successfully to delete the rest freely.${COLOR_DEFAULT}";
           ;;
@@ -70,7 +70,7 @@ if [ ! -z "$EXISTING_USER_ID" ]; then
     esac
   done
 else
-  ADMIN_USER_ID=`wp user create $USER_NAME "$USER_NAME@local.host" --user_pass=$USER_PASSWD --skip-themes --skip-plugins | awk -F. '{print $1}' | awk '{print $4}'`;
+  ADMIN_USER_ID=`wp user create $USER_NAME "$USER_NAME@local.host" --role=administrator --user_pass=$USER_PASSWD --skip-themes --skip-plugins | awk -F. '{print $1}' | awk '{print $4}'`;
 
   echo "${COLOR_GREEN}A new '$USER_NAME' user was created successfully to delete the rest freely.${COLOR_DEFAULT}";
 fi
@@ -84,11 +84,13 @@ echo "${COLOR_YELLOW}User '$USER_NAME' password is set to '$USER_PASSWD'.${COLOR
 
 echo "${COLOR_YELLOW}Changing the site URL to local...${COLOR_DEFAULT}";
 
+SITE_URL=`wp option get home --skip-themes --skip-plugins`
 DOMAIN=`wp option get home --skip-themes --skip-plugins | cut -d'/' -f3 | awk -F'.' -v WWW="www" '{if ( $1==WWW ) {print $2"."$3} else {print $1"."$2}}'`
 
 LOCAL_DOMAIN="http://local.$DOMAIN/"
 
 wp option set home $LOCAL_DOMAIN --skip-themes --skip-plugins &> /dev/null
 wp option set siteurl $LOCAL_DOMAIN --skip-themes --skip-plugins &> /dev/null
+wp search-replace "$SITE_URL" "$LOCAL_DOMAIN" --skip-themes --skip-plugins &> /dev/null
 
 echo "${COLOR_GREEN}Done! The site URL is changed to ${COLOR_CYAN}$LOCAL_DOMAIN${COLOR_DEFAULT}";
